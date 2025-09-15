@@ -5,14 +5,13 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const PORT = process.env.PORT || 1234;
 const DB = process.env.DB_URI;
-const baseUrl = 'https://final-project-ucy3.onrender.com'
 const userRouter = require('./router/user');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use(baseUrl, (req, res) => {
+app.use('/', (req, res) => {
   res.send('Connected to Backend Server')
 });
 app.use('/api/v1', userRouter);
