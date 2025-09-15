@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use(baseUrl, (req, res) => {
-  res.status(200).json('Connected to Backend API')
+  res.send('Connected to Backend Server')
 });
 app.use('/api/v1', userRouter);
 
