@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const userSchema = mongoose.Schema({
   fullName: {
     type: String,
@@ -26,7 +25,16 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
+  },
+  isverified: {
+    type: Boolean,
+    default: false
+  },
+  otp: {
+    type: String
+  },
+  otpExpiredAt: {
+    type: Number
   },
   profilePicture: {
     imageUrl: { type: String },
