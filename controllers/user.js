@@ -200,3 +200,24 @@ exports.makeAdmin = async (req, res) => {
     })
   }
 }
+
+exports.googleAuthLogin = async (req, res)=> {
+  try {
+    const token = await jwt.sign({
+      id: req.user._id,
+      email: req.user.email,
+      isAdmin: req.user.isAdmin
+    }, process.env.JWT_SECRET, {expiresIn: '1hr'})
+    // res.redirect('/')
+
+    res.status(200).json({
+      message: 'Login successful',
+      data: req.user.fullName,
+      token
+    })
+  } catch (error) {
+     res.status(500).json({
+      message: "Error logging with Google: " + error.mesaage
+    })
+  }
+}
