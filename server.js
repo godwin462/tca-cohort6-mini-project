@@ -8,10 +8,24 @@ const DB = process.env.MONGODB_URI;
 const userRouter = require('./router/user');
 const productRouter = require('./router/product');
 const paymentRouter = require('./router/payment');
+const session = require('express-session');
+const passport = require('passport');
+require('./middleware/passport')
+
 
 const app = express();
 app.use(express.json());
+app.use(session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: false
+}))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(cors());
+
 
 app.use('/api/v1', userRouter);
 app.use('/api/v1', productRouter);
