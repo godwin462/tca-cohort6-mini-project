@@ -14,7 +14,7 @@ exports.sendMail = async (user) => {
 
   (async () => {
     const info = await transporter.sendMail({
-      from: `QUICKLAH <${process.env.APP_USERNAME}>`,
+      from: `Chowfinder <${process.env.APP_USERNAME}>`,
       to: user.email,
       subject: user.subject,
       html: user.html

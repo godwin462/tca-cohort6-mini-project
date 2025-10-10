@@ -26,7 +26,8 @@ exports.registerValidator = (req, res, next) => {
     }),
     confirmPassword: joi.string().required().valid(joi.ref('password')).messages({
       'any.only': 'Passwords do not match',
-      'string.empty': 'Confirm password is required',
+      'string.empty': 'Confirm password cannot be empty',
+      'any.required': 'Confirm password is required'
     }),
     profile: joi.optional()
   });

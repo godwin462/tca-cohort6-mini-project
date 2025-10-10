@@ -3,6 +3,7 @@ const cloudinary = require('../config/cloudinary');
 const bcrypt = require('bcrypt');
 const { registerOTP } = require('../utils/email');
 const { sendMail } = require('../utils/nodemailer');
+const jwt = require('jsonwebtoken');
 
 
 exports.register = async (req, res) => {
@@ -102,9 +103,9 @@ exports.resendOtp = async (req, res) => {
     };
 
     const otp = Math.round(Math.random() * 1e6).toString().padStart(6, "0");
-    Object.assign(user, {otp: otp, otpExpiredAt: Date.now() + 1000 * 120});
+    Object.assign(user, { otp: otp, otpExpiredAt: Date.now() + 1000 * 120 });
 
-      const detail = {
+    const detail = {
       email: user.email,
       subject: 'Resend: Email Verification',
       html: registerOTP(user.otp, `${user.fullName.split(' ')[0]}`)
@@ -121,3 +122,81 @@ exports.resendOtp = async (req, res) => {
     })
   }
 };
+
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await userModel.findOne({ email: email.toLowerCase() });
+    if (user === null) {
+      return res.status(404).json({
+        message: 'User not found'
+      })
+    }
+    const passwordCorrect = await bcrypt.compare(password, user.password);
+    if (passwordCorrect === false) {
+      return res.status(400).json({
+        message: 'Invalid Password'
+      })
+    }
+
+    if (user.isVerified === false) {
+      return res.status(400).json({
+        message: 'User not verified, Please verify your account to continue'
+      })
+    }
+
+    const token = await jwt.sign({
+      id: user._id,
+      email: user.email,
+      isAdmin: user.isAdmin
+    }, process.env.JWT_SECRET, { expiresIn: '1day' });
+
+    // Send a success response
+    res.status(200).json({
+      message: "Login successfull",
+      data: user.fullName,
+      token
+    })
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error logging in: " + error.mesaage
+    })
+  }
+}
+
+exports.getAll = async (req, res) => {
+  try {
+    const allUsers = await userModel.find();
+    res.status(200).json({
+      message: `All users available and the total is: ${allUsers.length}`,
+      data: allUsers
+    })
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching all users: " + error.mesaage
+    })
+  }
+}
+
+exports.makeAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findById(id);
+    if (user === null) {
+      return res.status(404).json({
+        message: 'User not found'
+      })
+    }
+    user.isAdmin = true;
+
+    await user.save();
+    res.status(200).json({
+      message: 'User role updated to an Admin'
+    })
+  } catch (error) {
+    res.status(500).json({
+      message: "Error making user an Admin: " + error.mesaage
+    })
+  }
+}

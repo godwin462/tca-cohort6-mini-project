@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const userSchema = mongoose.Schema({
+const userSchema = new mongoose.Schema({
   fullName: {
     type: String,
     required: true,
@@ -26,7 +26,7 @@ const userSchema = mongoose.Schema({
     required: true,
     trim: true,
   },
-  isverified: {
+  isVerified: {
     type: Boolean,
     default: false
   },
@@ -39,6 +39,10 @@ const userSchema = mongoose.Schema({
   profilePicture: {
     imageUrl: { type: String },
     publicId: { type: String }
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

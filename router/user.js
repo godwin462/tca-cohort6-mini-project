@@ -1,4 +1,5 @@
-const { register, update, verify, resendOtp } = require('../controllers/user');
+const { register, update, verify, resendOtp, login, getAll, makeAdmin } = require('../controllers/user');
+const { authenticate, adminAuth } = require('../middleware/authentication');
 const uploads = require('../middleware/multer');
 const { registerValidator, verifyValidator, resendValidator } = require('../middleware/validator');
 
@@ -8,6 +9,12 @@ router.post('/register', uploads.single('profilePicture'), registerValidator, re
 
 router.post('/verify', verifyValidator, verify);
 
-router.post('/resent-otp', resendValidator,resendOtp);
+router.post('/resend-otp', resendValidator, resendOtp);
+
+router.post('/login', login);
+
+router.get('/users', authenticate, adminAuth, getAll);
+
+router.patch('/users/:id', authenticate, adminAuth, makeAdmin);
 
 module.exports = router;

@@ -7,60 +7,61 @@ const otpGen = require('otp-generator');
 
 exports.initializePayment = async (req, res) => {
   try {
-    const { userId, productId } = req.params;
-    const user = await userModel.findById(userId);
-    const product = await productModel.findById(productId);
-    const ref = otpGen.generate(12, { digits: true, lowerCaseAlphabets: true, upperCaseAlphabets: true, specialChars: false });
-
-    if (!user) {
+    const code = await otpGen.generate(12, { upperCaseAlphabets: false, lowerCaseAlphabets: true, digits: true, specialChars: false })
+    const ref = `TCA-${code}-TCHEE`
+    const productId = req.params.id;
+    const { id } = req.user;
+    const user = await userModel.findById(id);
+    if (user === null) {
       return res.status(404).json({
         message: 'User not found'
       })
     }
-
-    if (!product) {
+    const product = await productModel.findById(productId);
+    if (product === null) {
       return res.status(404).json({
         message: 'Product not found'
       })
-    };
+    }
 
-    const paymentInfo = {
-      amount: product.price,
+    const paymentData = {
+      amount: product.price *1000,
       currency: 'NGN',
       reference: ref,
       customer: {
         email: user.email,
-        name: `${user.fullName.split(' ')[0]}`
-      },
-      redirect_url: 'https://www.google.com'
+        name: user.fullName
+      }
     }
 
-    const { data } = await axios.post('https://api.korapay.com/merchant/api/v1/charges/initialize', paymentInfo, {
+    const { data } = await axios.post('https://api.korapay.com/merchant/api/v1/charges/initialize', paymentData, {
       headers: {
-        Authorization: `Bearer ${process.env.KORA}`
+        Authorization: `Bearer ${process.env.KORAPAY_SECRET_KEY}`
       }
     });
 
-    if (data.status && data.status === true) {
-      const payment = new paymentModel({
-        userId: user._id,
-        productId: product._id,
-        price: product.price,
-        reference: data.data.reference
-      })
+    const payment = new paymentModel({
+      userId: id,
+      productId,
+      reference: ref,
+      price: product.price
+    });
 
+    if (data?.status === true) {
       await payment.save();
-      res.status(200).json({
-        message: 'Payment successful',
-        data: {
-          reference: data.data.reference,
-          checkout_url: data.data.checkout_url
-        }
-      })
     }
+
+    res.status(200).json({
+      message: 'Payment Initialized successfuly',
+      data: {
+        reference: data?.data?.reference,
+        url: data?.data?.checkout_url
+      }
+    })
   } catch (error) {
     res.status(500).json({
-      message: 'Error initializing payment: ' + error.message
+      message: 'Error initializing payment: ' + error.message,
+      error: error.response?.data
     })
   }
 };
@@ -69,34 +70,30 @@ exports.initializePayment = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
   try {
     const { reference } = req.query;
-    const payment = await paymentModel.findOne({ reference: reference });
-
-    if (!payment) {
+    const payment = await paymentModel.findOne({ reference });
+    if (payment === null) {
       return res.status(404).json({
         message: 'Payment not found'
       })
-    };
-
+    }
     const { data } = await axios.get(`https://api.korapay.com/merchant/api/v1/charges/${reference}`, {
       headers: {
-        Authorization: `Bearer ${process.env.KORA}`
+        Authorization: `Bearer ${process.env.KORAPAY_SECRET_KEY}`
       }
-    });
+    })
 
-    console.log(data);
-    
-
-    if (data.status === true && data.data.status === 'success') {
-      Object.assign(payment, { status: 'Successful' });
+    console.log(data)
+    if (data?.status === true && data?.data?.status === "success") {
+      payment.status = 'Successful'
       await payment.save();
       res.status(200).json({
-        message: 'Payment successful'
+        message: 'Payment Verified Successfully'
       })
-    } else if(data.status === true && data.data.status === 'processing') {
-      Object.assign(payment, { status: 'Pending' });
+    } else{
+      payment.status = 'Failed'
       await payment.save();
       res.status(200).json({
-        message: 'Payment failed'
+        message: 'Payment Failed'
       })
     }
   } catch (error) {
