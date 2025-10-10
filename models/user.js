@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
   isAdmin: {
     type: Boolean,
     default: false
+  },
+  isGoogle: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 
