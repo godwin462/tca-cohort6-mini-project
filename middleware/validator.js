@@ -20,7 +20,7 @@ exports.registerValidator = (req, res, next) => {
       'number.min': 'Only 10 years above',
       'number.empty': 'Age is required'
     }),
-    password: joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%_*#?&-])[A-Za-z\d@$!%_*#?&]{8,}$/).required().messages({
+    password: joi.string().required().messages({
       'string.empty': 'Password is required',
       'string.pattern.base': 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, a number, and a special character (@$!%_*#?&)',
     }),

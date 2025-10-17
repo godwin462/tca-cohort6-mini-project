@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-exports.sendMail = async (user) => {
+exports.sendMail = async ({ email, subject, html }) => {
   const transporter = nodemailer.createTransport({
     host: process.env.HOST,
     service: process.env.SERVICE,
@@ -15,11 +15,11 @@ exports.sendMail = async (user) => {
   (async () => {
     const info = await transporter.sendMail({
       from: `Chowfinder <${process.env.APP_USERNAME}>`,
-      to: user.email,
-      subject: user.subject,
-      html: user.html
+      to: email,
+      subject: subject,
+      html: html,
     });
 
-    console.log("Message sent to:", user.email);
+    console.log("Message sent to:", email);
   })();
 };
