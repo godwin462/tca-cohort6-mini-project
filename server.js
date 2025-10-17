@@ -27,7 +27,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(cors());
-
+const apiVersion = `/api/v1`;
 const swaggerDefinition = {
   openapi: "3.0.0",
   info: {
@@ -45,12 +45,12 @@ const swaggerDefinition = {
     },
   },
   servers: [
-    // {
-    //   url: "https://www.google.com",
-    //   description: "Live server",
-    // },
     {
-      url: `http://localhost:${PORT}/api/v1`,
+      url: `https://tca-cohort6-mini-project.onrender.com${apiVersion}`,
+      description: "Live server",
+    },
+    {
+      url: `http://localhost:${PORT}${apiVersion}`,
       description: "Development server",
     },
   ],
@@ -63,17 +63,11 @@ const swaggerDefinition = {
       },
     },
   },
-  paths: {
-    "/api/v1/*": {
-      get: {
-        security: [
-          {
-            bearerAuth: [],
-          },
-        ],
-      },
+  security: [
+    {
+      bearerAuth: [],
     },
-  },
+  ],
 };
 
 const options = {
@@ -83,13 +77,13 @@ const options = {
 };
 
 const swaggerSpec = swaggerJSDoc(options);
-app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+app.use(`${apiVersion}/docs`, swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
-app.use("/api/v1", userRouter);
-app.use("/api/v1", productRouter);
-app.use("/api/v1", paymentRouter);
+app.use(`${apiVersion}`, userRouter);
+app.use(`${apiVersion}`, productRouter);
+app.use(`${apiVersion}`, paymentRouter);
 
-app.use("/", (req, res) => {
+app.use(`/`, (req, res) => {
   res.send("Connected to Backend Server");
 });
 

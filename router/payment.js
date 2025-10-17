@@ -1,4 +1,4 @@
-const { initializePayment, verifyPayment } = require('../controllers/payment');
+const { initializePayment, verifyPayment, verifyPaymentWebHook } = require('../controllers/payment');
 const { authenticate } = require('../middleware/authentication');
 
 const router = require('express').Router();
@@ -54,5 +54,34 @@ router.post('/make-payment/:id', authenticate, initializePayment);
  *         description: Internal server error
  */
 router.get('/verify-payment', verifyPayment);
+
+/**
+ * @swagger
+ * /api/v1/verify-payment-webhook:
+ *   post:
+ *     summary: Verify a payment webhook
+ *     description: Verify a payment webhook using the event and data from the request body.
+ *     tags:
+ *       - Payment
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               event:
+ *                 type: string
+ *               data:
+ *                 type: object
+ *     responses:
+ *       '200':
+ *         description: Payment webhook verified successfully
+ *       '400':
+ *         description: Bad request
+ *       '500':
+ *         description: Internal server error
+ */
+router.get('/verify-payment-webhook', verifyPaymentWebHook);
 
 module.exports = router;
